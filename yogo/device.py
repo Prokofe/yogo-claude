@@ -166,11 +166,16 @@ class YogoDisplay:
     def read_config(self) -> bytearray:
         """Read the 64-byte device config (56 from the device + 8 zero pad)."""
         self.begin_session()
-        rx = self._command(p.CMD_GET_KEYBOARD_FUNCTION, offset=0,
-                           data_len=p.CONFIG_READ_LEN)
-        if rx is None:
-            raise ProtocolError("no reply to config read")
-        cfg = bytearray(rx[p.DATA_OFFSET:p.DATA_OFFSET + p.CONFIG_READ_LEN])
+        # The 2.4 GHz dongle carries at most max_data (24) bytes per reply,
+        # so read the 56-byte blob in chunks; wired reads it in one go.
+        cfg = bytearray()
+        for off in range(0, p.CONFIG_READ_LEN, self.max_data):
+            n = min(self.max_data, p.CONFIG_READ_LEN - off)
+            rx = self._command(p.CMD_GET_KEYBOARD_FUNCTION, offset=off,
+                               data_len=n)
+            if rx is None:
+                raise ProtocolError("no reply to config read")
+            cfg += bytes(rx[p.DATA_OFFSET:p.DATA_OFFSET + n])
         if len(cfg) != p.CONFIG_READ_LEN:
             raise ProtocolError(f"short config read: {len(cfg)}B")
         cfg.extend(b"\x00" * (p.CONFIG_LEN - p.CONFIG_READ_LEN))
