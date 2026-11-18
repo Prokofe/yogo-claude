@@ -52,7 +52,7 @@ an individual is officially representing the community in public spaces.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the maintainer by opening an issue or, for anything sensitive,
-through a private [security advisory](https://github.com/rossgpt/yogo/security/advisories/new).
+through a private [security advisory](https://github.com/Prokofe/yogo-claude/security/advisories/new).
 All complaints will be reviewed and investigated promptly and fairly.
 
 ## Attribution

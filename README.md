@@ -1,14 +1,37 @@
-# yogo — drive the 6×6 RGB display on an ATK Yogo 75 PRO
+# yogo-claude — Claude Code on the ATK Yogo 75 PRO's 6×6 screen
 
-[![CI](https://github.com/rossgpt/yogo/actions/workflows/ci.yml/badge.svg)](https://github.com/rossgpt/yogo/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) ![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)
+[![CI](https://github.com/Prokofe/yogo-claude/actions/workflows/ci.yml/badge.svg)](https://github.com/Prokofe/yogo-claude/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) ![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)
 
-A small Python library and CLI for the pixel display on the ATK Yogo 75 PRO
-keyboard, talking to it directly over USB HID. No ATK HUB required.
+The pixel display on the ATK Yogo 75 PRO keyboard shows what Claude Code is
+doing: thinking, running a tool, waiting on a question, done. A small Python
+library and CLI talk to the screen directly over USB HID, with no ATK HUB.
 
-The wire format was worked out and verified against the hardware, and is
-documented in full below. Tested only on the Yogo 75 PRO.
+Built on [rossgpt/yogo](https://github.com/rossgpt/yogo), which worked out the
+wire format and the signal bus. This version adds:
+
+- **A robot-face theme**, the default: a pulsing **?** when Claude has a
+  question, and a checkmark that turns into a hopping **^^** grin when it is
+  done.
+- **Away mode.** Once nobody has touched the keyboard or mouse for two
+  minutes the daemon stops streaming, so the keyboard can sleep even while
+  an agent keeps working overnight. The first key press brings it back.
+- **No false questions.** Claude Code's one-minute idle reminder no longer
+  shows up as a question.
+- **A one-step installer** for a fresh Mac, and dongle (2.4 GHz) fixes.
+
+The wire format was verified against the hardware and is documented in full
+below. Tested only on the Yogo 75 PRO, over USB and the 2.4 GHz dongle.
 
 ## Install
+
+```sh
+git clone https://github.com/Prokofe/yogo-claude.git ~/Yogo
+~/Yogo/install.sh
+```
+
+The installer sets up hidapi, the venv, the Claude Code hooks (merged into
+`~/.claude/settings.json`, which it backs up first) and the daemon. Restart
+Claude Code afterwards so it loads the hooks. By hand:
 
 ```sh
 brew install hidapi
@@ -57,19 +80,23 @@ contract, arbitration rules and a guide to writing another one are in
 ```sh
 ./bin/yogo daemon --idle breathe    # start the renderer (detaches)
 ./bin/yogo daemon --idle firmware   # …or let the keyboard's own animation play when idle
+./bin/yogo daemon --away-after 300  # stop streaming after 5 min with no key or mouse input
 ./bin/yogo daemon --status
 ./bin/yogo sources                  # who is signalling; * marks the winner
 ./bin/yogo-signal my-script done    # signal from anything
 ```
 
-| State | Look | Meaning |
+| State | Look (face theme) | Meaning |
 |---|---|---|
-| `thinking` | cyan comet orbiting the edge | working / calling the model |
-| `tool` | violet, faster orbit | running a tool or subagent |
-| `waiting` | amber flashing, ~2 Hz | needs a human |
-| `done` | green bloom, then fading glow | finished |
-| `error` | red double-flash | failed |
-| `idle` | off, a dim blue breathe, or the keyboard's built-in animation (`--idle firmware`) | between sessions |
+| `thinking` | eyes glancing around, dots rippling below | working / calling the model |
+| `tool` | focused squint, a scanner sweeping below | running a tool or subagent |
+| `waiting` | a big **?** pulsing ~2 Hz | needs a human |
+| `done` | a checkmark draws itself, then a **^^** grin hops twice and fades | finished |
+| `error` | red x x eyes and a frown, double-flash | failed |
+| `idle` | off, sleepy closed eyes breathing (`--idle breathe`), or the keyboard's built-in animation (`--idle firmware`) | between sessions |
+
+`YOGO_THEME=claude` swaps in comet rings in a warm clay palette, and
+`YOGO_THEME=classic` the original cyan, violet and amber look.
 
 To see them all in sequence run `./bin/yogo demo` — it walks
 idle → thinking → tool → waiting → done → error at 2 s each (`--hold`,
@@ -189,4 +216,5 @@ privately as described in [`SECURITY.md`](SECURITY.md).
 
 ## License
 
-[MIT](LICENSE).
+[MIT](LICENSE). The original yogo is © rossgpt; the changes in this version
+are © Alex Prokofyev.

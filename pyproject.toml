@@ -3,14 +3,14 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "yogo"
+name = "yogo-claude"
 version = "0.1.0"
-description = "Drive the 6x6 RGB display on an ATK Yogo 75 PRO keyboard over USB HID"
+description = "Show what Claude Code is doing on the 6x6 RGB display of an ATK Yogo 75 PRO keyboard, over USB HID"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
-authors = [{ name = "rossgpt" }]
+authors = [{ name = "rossgpt" }, { name = "Alex Prokofyev" }]
 keywords = ["atk", "yogo", "keyboard", "hid", "rgb", "display", "claude-code", "hermes"]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -27,8 +27,8 @@ dependencies = ["hid", "Pillow", "psutil"]
 dev = ["pytest", "ruff"]
 
 [project.urls]
-Homepage = "https://github.com/rossgpt/yogo"
-Issues = "https://github.com/rossgpt/yogo/issues"
+Homepage = "https://github.com/Prokofe/yogo-claude"
+Issues = "https://github.com/Prokofe/yogo-claude/issues"
 
 [project.scripts]
 yogo = "yogo.cli:main"

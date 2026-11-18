@@ -5,7 +5,7 @@
 Please do not open a public issue for security problems. Use GitHub's private
 vulnerability reporting instead:
 
-https://github.com/rossgpt/yogo/security/advisories/new
+https://github.com/Prokofe/yogo-claude/security/advisories/new
 
 You should get an acknowledgement within a week. Once a fix is available it
 will be released and the advisory published with credit, unless you prefer
