@@ -2,4 +2,6 @@
 # hidapi lives in Homebrew's lib dir; the python bindings need to find it.
 DIR=$(cd "$(dirname "$0")/.." && pwd)
 export DYLD_LIBRARY_PATH="${DYLD_LIBRARY_PATH:-}:/opt/homebrew/lib:/usr/local/lib"
+# The venv has no editable install, so name the repo or -m only works from it.
+export PYTHONPATH="$DIR${PYTHONPATH:+:$PYTHONPATH}"
 exec "$DIR/.venv/bin/python" -m yogo.cli "$@"
