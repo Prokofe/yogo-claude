@@ -77,7 +77,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${YOGO_REPO:-$HOME/Yogo}\"/bin/yogo-signal claude-code waiting",
+            "command": "grep -Eq '\"notification_type\" *: *\"idle_prompt\"' || \"${YOGO_REPO:-$HOME/Yogo}\"/bin/yogo-signal claude-code waiting",
             "async": true,
             "timeout": 5
           }
