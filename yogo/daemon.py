@@ -116,6 +116,18 @@ RENDERERS = {
 }
 
 
+# Theme switch: YOGO_THEME=face (default), claude or classic. Rebinding the
+# module globals means run() and the CLI demo both pick the theme up.
+_THEME = os.environ.get("YOGO_THEME", "face").lower()
+if _THEME in ("face", "claude"):
+    if _THEME == "face":
+        from . import face_theme as _theme
+    else:
+        from . import claude_theme as _theme
+    RENDERERS = _theme.RENDERERS
+    render_idle = _theme.render_idle
+
+
 # --- process management ---------------------------------------------------
 def daemon_pid() -> int | None:
     """PID of a live daemon, or None. Clears a stale pid file."""
