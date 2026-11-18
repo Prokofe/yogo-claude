@@ -21,7 +21,7 @@ import signal
 import sys
 import time
 
-from . import bus
+from . import bus, presence
 from . import protocol as p
 from .device import YogoDisplay
 from .frame import Frame
@@ -29,6 +29,8 @@ from .frame import Frame
 RUNTIME_DIR = bus.RUNTIME_DIR
 PID_FILE = bus.PID_FILE
 STATES = bus.STATES
+
+AWAY_POLL = 0.5   # how often to look for someone coming back, in seconds
 
 
 def _hsv(h: float, s: float, v: float):
@@ -115,7 +117,6 @@ RENDERERS = {
     "error": render_error,
 }
 
-
 # Theme switch: YOGO_THEME=face (default), claude or classic. Rebinding the
 # module globals means run() and the CLI demo both pick the theme up.
 _THEME = os.environ.get("YOGO_THEME", "face").lower()
@@ -160,7 +161,7 @@ def stop_daemon() -> bool:
 
 
 def run(fps: float = 15.0, idle_style: str = "off", brightness: float = 1.0,
-        verbose: bool = False) -> int:
+        verbose: bool = False, away_after: float = 120.0) -> int:
     if daemon_pid() is not None:
         print("a yogo daemon is already running", file=sys.stderr)
         return 1
@@ -184,6 +185,27 @@ def run(fps: float = 15.0, idle_style: str = "off", brightness: float = 1.0,
     try:
         while not stopping["flag"]:
             now = time.monotonic()
+
+            # Nobody at the Mac: send nothing, so the keyboard can sleep even
+            # while an agent keeps working. The first key press or mouse move
+            # brings the current state straight back.
+            if presence.away(away_after):
+                if verbose and last_desc != "away":
+                    print(f"[{time.strftime('%H:%M:%S')}] away: no input for "
+                          f"{away_after:.0f}s, screen handed back", flush=True)
+                    last_desc = "away"
+                if dev is not None:
+                    try:
+                        dev.end_stream()
+                    except Exception:
+                        try:
+                            dev.close()
+                        except Exception:
+                            pass
+                        dev = None
+                time.sleep(AWAY_POLL)
+                continue
+
             state, elapsed, win = bus.arbitrate()
 
             # idle has no producer, so give it its own clock for the breathe

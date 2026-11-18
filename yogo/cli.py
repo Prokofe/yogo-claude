@@ -321,7 +321,8 @@ def cmd_daemon(args) -> int:
         return 0
     if args.foreground:
         return dmn.run(fps=args.fps, idle_style=args.idle,
-                       brightness=args.brightness, verbose=not args.quiet)
+                       brightness=args.brightness, verbose=not args.quiet,
+                       away_after=args.away_after)
     # Detach by exec'ing a fresh process, NOT by forking: hidapi talks to
     # IOKit/CoreFoundation, which macOS forbids using after fork() without an
     # exec(). A forked child dies with "The process has forked and you cannot
@@ -335,6 +336,7 @@ def cmd_daemon(args) -> int:
     subprocess.Popen(
         [sys.executable, "-m", "yogo.cli", "daemon", "--foreground",
          "--fps", str(args.fps), "--idle", args.idle,
+         "--away-after", str(args.away_after),
          "--brightness", str(args.brightness)],
         cwd=str(pathlib.Path(__file__).resolve().parent.parent),
         stdin=subprocess.DEVNULL, stdout=log, stderr=log,
@@ -481,6 +483,10 @@ def build_parser() -> argparse.ArgumentParser:
                    help="what to show when nothing is happening: off, a dim blue "
                         "breathe, or 'firmware' to hand the screen back to the "
                         "keyboard's own built-in animation (default: off)")
+    s.add_argument("--away-after", type=float, default=120.0, metavar="SECONDS",
+                   help="stop streaming once nobody has touched the keyboard or "
+                        "mouse for this long, so the keyboard can sleep; any input "
+                        "resumes it (default: 120, 0 to always stream)")
     s.set_defaults(fn=cmd_daemon)
 
     s = sub.add_parser("state", help="publish a display state to the bus", parents=[common])
