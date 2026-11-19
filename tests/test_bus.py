@@ -71,6 +71,32 @@ def test_transient_hold_lets_underlying_state_resume():
     assert bus.arbitrate([done, thinking], now=now)[0] == "thinking"
 
 
+def test_finished_turns_outlasts_the_done_hold():
+    now = 100_000.0
+    done = sig("done", now - 3600)
+    assert bus.arbitrate([done], now=now)[0] == "idle"
+    assert bus.finished_turns([done], now=now) == [done]
+
+
+def test_finished_turns_clears_once_the_producer_moves_on():
+    now = 100.0
+    assert not bus.finished_turns([sig("thinking", now - 1)], now=now)
+    assert not bus.finished_turns([sig("idle", now - 1)], now=now)
+    assert not bus.finished_turns([], now=now)
+
+
+def test_finished_turns_lapses_after_the_mark_ttl():
+    now = 1_000_000.0
+    assert not bus.finished_turns([sig("done", now - bus.FINISHED_MARK_TTL - 1)], now=now)
+
+
+def test_finished_turns_counts_any_source():
+    now = 100.0
+    done = sig("done", now - 60, source="a")
+    idle = sig("idle", now - 10, source="b")
+    assert bus.finished_turns([idle, done], now=now) == [done]
+
+
 def test_dead_pid_expires_signal():
     # Find a pid that certainly is not running.
     pid = 2**22 - 1

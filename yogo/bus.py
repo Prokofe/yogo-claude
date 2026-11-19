@@ -50,6 +50,11 @@ TRANSIENT_HOLD = {"done": 5.0, "error": 5.0}
 # legitimate agent turn can run for many minutes.
 DEFAULT_TTL = 900.0
 
+# How long a finished turn stays marked on the idle screen. Long enough to
+# cover a night away; the mark normally clears sooner, when that producer
+# starts its next turn or ends its session.
+FINISHED_MARK_TTL = 12 * 3600.0
+
 _SOURCE_RE = re.compile(r"[^a-z0-9_-]+")
 
 
@@ -165,6 +170,19 @@ def arbitrate(signals: list[Signal] | None = None,
     live.sort(key=lambda s: (PRIORITY.get(s.state, 0), s.ts))
     win = live[-1]
     return win.state, win.age(now), win
+
+
+def finished_turns(signals: list[Signal] | None = None,
+                   now: float | None = None) -> list[Signal]:
+    """The producers whose last word is a completed turn.
+
+    `done` stops competing once its hold elapses, but the producer's file
+    keeps saying `done` until its next signal, so the screen can still show
+    that a turn finished while nobody was watching.
+    """
+    now = time.time() if now is None else now
+    return [s for s in (signals if signals is not None else read_all())
+            if s.state == "done" and s.age(now) <= FINISHED_MARK_TTL]
 
 
 def prune(max_age: float = 86400.0) -> int:

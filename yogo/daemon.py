@@ -32,6 +32,13 @@ STATES = bus.STATES
 
 AWAY_POLL = 0.5   # how often to look for someone coming back, in seconds
 
+# A turn finished and you haven't looked yet (FinishedMark): one green pixel
+# in the bottom-right corner, on top of whatever is showing, so a glance says
+# "done" long after the animation. The face theme leaves this corner dark.
+FINISHED_DOT = (5, 5)
+FINISHED_GREEN = (0, 200, 40)
+SEEN_AFTER = 3.0  # how long the dot must be up before a key press counts as seeing it
+
 
 def _hsv(h: float, s: float, v: float):
     r, g, b = colorsys.hsv_to_rgb(h % 1.0, max(0.0, min(1.0, s)),
@@ -129,6 +136,62 @@ if _THEME in ("face", "claude"):
     render_idle = _theme.render_idle
 
 
+def compose(state: str, elapsed: float, idle_style: str, finished: bool) -> Frame | None:
+    """The frame to show for `state`, or None to hand the screen to the firmware.
+
+    `finished` is FinishedMark.update(): a finished turn still earns the dot.
+    The dot sits on top of whatever is showing, so one session's done survives
+    another session's work; it only waits out the done animation itself.
+    """
+    mark = finished and state != "done"
+    renderer = RENDERERS.get(state)
+    if renderer:
+        frame = renderer(elapsed)
+    elif idle_style == "firmware" and not mark:
+        return None
+    else:
+        frame = render_idle(elapsed, "off" if idle_style == "firmware" else idle_style)
+    if mark:
+        frame[FINISHED_DOT] = FINISHED_GREEN
+    return frame
+
+
+class FinishedMark:
+    """Which finished turns still earn the green dot.
+
+    A turn keeps its dot until someone touches the keyboard or mouse after
+    the dot has been on screen for SEEN_AFTER seconds, so it means "finished,
+    and you haven't looked yet". The key press that wakes the screen from away
+    mode cannot clear it, nor can input while the dot is hidden.
+    """
+
+    def __init__(self):
+        self._seen: set[tuple[str, float]] = set()
+        self._shown_at: float | None = None
+
+    def hide(self) -> None:
+        self._shown_at = None
+
+    def update(self, turns, now: float, idle: float | None, visible: bool) -> bool:
+        """True while the dot is due. `now` is monotonic, `idle` the seconds
+        since the last input (None if unknown), `visible` whether the dot is
+        on screen this frame."""
+        unseen = {(s.source, s.ts) for s in turns} - self._seen
+        if not unseen:
+            self._shown_at = None
+            return False
+        if not visible:
+            self._shown_at = None
+            return True
+        if self._shown_at is None:
+            self._shown_at = now
+        if idle is not None and now - idle >= self._shown_at + SEEN_AFTER:
+            self._seen |= unseen
+            self._shown_at = None
+            return False
+        return True
+
+
 # --- process management ---------------------------------------------------
 def daemon_pid() -> int | None:
     """PID of a live daemon, or None. Clears a stale pid file."""
@@ -181,6 +244,7 @@ def run(fps: float = 15.0, idle_style: str = "off", brightness: float = 1.0,
     next_retry = 0.0
     last_desc = None
     idle_since = time.monotonic()
+    mark = FinishedMark()
 
     try:
         while not stopping["flag"]:
@@ -203,10 +267,15 @@ def run(fps: float = 15.0, idle_style: str = "off", brightness: float = 1.0,
                         except Exception:
                             pass
                         dev = None
+                mark.hide()
                 time.sleep(AWAY_POLL)
                 continue
 
-            state, elapsed, win = bus.arbitrate()
+            signals = bus.read_all()
+            state, elapsed, win = bus.arbitrate(signals)
+            finished = mark.update(bus.finished_turns(signals), now,
+                                   presence.seconds_since_input(),
+                                   visible=state != "done")
 
             # idle has no producer, so give it its own clock for the breathe
             if state == "idle":
@@ -215,7 +284,8 @@ def run(fps: float = 15.0, idle_style: str = "off", brightness: float = 1.0,
                 idle_since = now
 
             if verbose:
-                desc = f"{state} <- {win.source if win else 'none'}"
+                desc = (f"{state}{' + finished mark' if finished else ''} "
+                        f"<- {win.source if win else 'none'}")
                 if desc != last_desc:
                     print(f"[{time.strftime('%H:%M:%S')}] {desc}", flush=True)
                     last_desc = desc
@@ -236,17 +306,15 @@ def run(fps: float = 15.0, idle_style: str = "off", brightness: float = 1.0,
                         print(f"waiting for device: {e}", flush=True)
                     continue
 
-            renderer = RENDERERS.get(state)
-
             try:
-                if renderer is None and idle_style == "firmware":
+                frame = compose(state, elapsed, idle_style, finished)
+                if frame is None:
                     # Hand the screen back so the keyboard's own built-in
                     # animation plays between sessions. Streaming resumes on
                     # the first frame of the next state.
                     dev.end_stream()
                     time.sleep(dt)
                     continue
-                frame = renderer(elapsed) if renderer else render_idle(elapsed, idle_style)
                 if brightness < 1.0:
                     frame = frame.scaled(brightness)
                 dev.show(frame.pixels)

@@ -19,6 +19,8 @@ wire format and the signal bus. This version adds:
   shows up as a question.
 - **Parallel sessions.** Each Claude Code session signals on its own, so a
   question in one isn't hidden by another one's next tool call.
+- **A green "finished" dot** in the corner that stays until you've looked, so
+  a turn that ended while you were away isn't missed.
 - **A one-step installer** for a fresh Mac, and dongle (2.4 GHz) fixes.
 
 The wire format was verified against the hardware and is documented in full
@@ -96,6 +98,13 @@ contract, arbitration rules and a guide to writing another one are in
 | `done` | a checkmark draws itself, then a **^^** grin hops twice and fades | finished |
 | `error` | red x x eyes and a frown, double-flash | failed |
 | `idle` | off, sleepy closed eyes breathing (`--idle breathe`), or the keyboard's built-in animation (`--idle firmware`) | between sessions |
+
+After a turn finishes, a **green pixel** in the bottom-right corner stays on
+top of whatever is showing, so another session's work doesn't hide it. It
+means "finished, and you haven't looked yet". It clears once you touch the
+keyboard or mouse with the dot on screen for 3 s (the key press that wakes the
+screen from away mode doesn't count), when that session starts its next turn
+or closes, or after 12 hours.
 
 `YOGO_THEME=claude` swaps in comet rings in a warm clay palette, and
 `YOGO_THEME=classic` the original cyan, violet and amber look.
