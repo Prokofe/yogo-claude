@@ -1,0 +1,27 @@
+#!/bin/sh
+# Claude Code hook: publish this session's state on the yogo bus.
+#
+#   hook <state>    from settings.json, with the hook's JSON on stdin
+#   hook end        on SessionEnd: drop this session's signal
+#
+# Each session signs as claude-code-<first 8 of its session id>, so parallel
+# sessions are arbitrated like separate producers: a question in one is not
+# overwritten by another's next tool call, and one finishing leaves its done
+# mark while another keeps working.
+#
+# Plain POSIX shell, no jq: this runs on every tool call.
+input=$(cat)
+sid=$(printf '%s' "$input" | sed -n 's/.*"session_id" *: *"\([^"]*\)".*/\1/p' | cut -c1-8)
+src="claude-code${sid:+-$sid}"
+
+case "$1" in
+  end)
+    rm -f "${YOGO_HOME:-$HOME/.yogo}/sources/$src.json"
+    exit 0 ;;
+  waiting)
+    # Claude Code's "waiting for your input" reminder, a minute after a turn
+    # ends, is not a question.
+    printf '%s' "$input" | grep -Eq '"notification_type" *: *"idle_prompt"' && exit 0 ;;
+esac
+
+exec "$(dirname "$0")/../../bin/yogo-signal" "$src" "$1"

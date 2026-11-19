@@ -17,6 +17,8 @@ wire format and the signal bus. This version adds:
   an agent keeps working overnight. The first key press brings it back.
 - **No false questions.** Claude Code's one-minute idle reminder no longer
   shows up as a question.
+- **Parallel sessions.** Each Claude Code session signals on its own, so a
+  question in one isn't hidden by another one's next tool call.
 - **A one-step installer** for a fresh Mac, and dongle (2.4 GHz) fixes.
 
 The wire format was verified against the hardware and is documented in full

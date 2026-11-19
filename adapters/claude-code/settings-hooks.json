@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${YOGO_REPO:-$HOME/Yogo}\"/bin/yogo daemon --idle breathe >/dev/null 2>&1; \"${YOGO_REPO:-$HOME/Yogo}\"/bin/yogo-signal claude-code idle",
+            "command": "\"${YOGO_REPO:-$HOME/Yogo}\"/bin/yogo daemon --idle breathe >/dev/null 2>&1; \"${YOGO_REPO:-$HOME/Yogo}\"/adapters/claude-code/hook idle",
             "async": true,
             "timeout": 20
           }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${YOGO_REPO:-$HOME/Yogo}\"/bin/yogo-signal claude-code thinking",
+            "command": "\"${YOGO_REPO:-$HOME/Yogo}\"/adapters/claude-code/hook thinking",
             "async": true,
             "timeout": 5
           }
@@ -29,7 +29,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${YOGO_REPO:-$HOME/Yogo}\"/bin/yogo-signal claude-code tool",
+            "command": "\"${YOGO_REPO:-$HOME/Yogo}\"/adapters/claude-code/hook tool",
             "async": true,
             "timeout": 5
           }
@@ -41,7 +41,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${YOGO_REPO:-$HOME/Yogo}\"/bin/yogo-signal claude-code thinking",
+            "command": "\"${YOGO_REPO:-$HOME/Yogo}\"/adapters/claude-code/hook thinking",
             "async": true,
             "timeout": 5
           }
@@ -53,7 +53,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${YOGO_REPO:-$HOME/Yogo}\"/bin/yogo-signal claude-code error",
+            "command": "\"${YOGO_REPO:-$HOME/Yogo}\"/adapters/claude-code/hook error",
             "async": true,
             "timeout": 5
           }
@@ -65,7 +65,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${YOGO_REPO:-$HOME/Yogo}\"/bin/yogo-signal claude-code waiting",
+            "command": "\"${YOGO_REPO:-$HOME/Yogo}\"/adapters/claude-code/hook waiting",
             "async": true,
             "timeout": 5
           }
@@ -77,7 +77,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "grep -Eq '\"notification_type\" *: *\"idle_prompt\"' || \"${YOGO_REPO:-$HOME/Yogo}\"/bin/yogo-signal claude-code waiting",
+            "command": "\"${YOGO_REPO:-$HOME/Yogo}\"/adapters/claude-code/hook waiting",
             "async": true,
             "timeout": 5
           }
@@ -89,7 +89,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${YOGO_REPO:-$HOME/Yogo}\"/bin/yogo-signal claude-code waiting",
+            "command": "\"${YOGO_REPO:-$HOME/Yogo}\"/adapters/claude-code/hook waiting",
             "async": true,
             "timeout": 5
           }
@@ -101,7 +101,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${YOGO_REPO:-$HOME/Yogo}\"/bin/yogo-signal claude-code done",
+            "command": "\"${YOGO_REPO:-$HOME/Yogo}\"/adapters/claude-code/hook done",
             "async": true,
             "timeout": 5
           }
@@ -113,7 +113,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${YOGO_REPO:-$HOME/Yogo}\"/bin/yogo-signal claude-code error",
+            "command": "\"${YOGO_REPO:-$HOME/Yogo}\"/adapters/claude-code/hook error",
             "async": true,
             "timeout": 5
           }
@@ -125,7 +125,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${YOGO_REPO:-$HOME/Yogo}\"/bin/yogo-signal claude-code idle",
+            "command": "\"${YOGO_REPO:-$HOME/Yogo}\"/adapters/claude-code/hook end",
             "async": true,
             "timeout": 5
           }

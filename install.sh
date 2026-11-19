@@ -70,7 +70,7 @@ jq --slurpfile t "$TEMPLATE" --arg dir "$DIR" '
      end) as $yogo
   | .hooks = (reduce ($yogo | keys[]) as $ev (.hooks // {};
       .[$ev] = ([(.[$ev] // [])[]
-                 | select(any(.hooks[]?; (.command // "") | test("yogo-signal|bin/yogo")) | not)]
+                 | select(any(.hooks[]?; (.command // "") | test("yogo-signal|bin/yogo|claude-code/hook")) | not)]
                 + $yogo[$ev])))
 ' "$SETTINGS" > "$TMP" && jq -e . "$TMP" >/dev/null && mv "$TMP" "$SETTINGS" || {
     rm -f "$TMP"

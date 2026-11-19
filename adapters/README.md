@@ -107,7 +107,7 @@ Rules worth following, both learned the hard way:
 
 | Harness | Location | Mechanism |
 |---|---|---|
-| Claude Code | `adapters/claude-code/settings-hooks.json` | 11 `async` hooks in `~/.claude/settings.json` calling `bin/yogo-signal` |
+| Claude Code | `adapters/claude-code/settings-hooks.json` | 11 `async` hooks in `~/.claude/settings.json` calling `adapters/claude-code/hook`, which signs each session as `claude-code-<session id>` so parallel sessions don't overwrite each other |
 | Hermes | `adapters/hermes/yogo-display/` | Python plugin, symlinked into `~/.hermes/plugins/`, registers 10 lifecycle hooks |
 
 ### Claude Code
